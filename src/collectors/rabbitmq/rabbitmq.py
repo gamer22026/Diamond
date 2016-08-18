@@ -39,8 +39,8 @@ class RabbitMQClient(object):
     Tiny interface into the rabbit http api
     """
 
-    def __init__(self, host, user, password, timeout=5, scheme="http"):
-        self.base_url = '%s://%s/api/' % (scheme, host)
+    def __init__(self, host, user, password, timeout=5):
+        self.base_url = 'http://%s/api/' % host
         self.timeout = timeout
         self._authorization = 'Basic ' + b64encode('%s:%s' % (user, password))
 
@@ -65,6 +65,15 @@ class RabbitMQClient(object):
         queues = self.do_call(path)
         return queues or []
 
+    def get_exchanges(self, vhost=None):
+        path = 'exchanges'
+        if vhost:
+            vhost = quote(vhost, '')
+            path += '/%s' % vhost
+
+        exchanges = self.do_call(path)
+        return exchanges or []
+
     def get_overview(self):
         return self.do_call('overview')
 
@@ -75,18 +84,16 @@ class RabbitMQClient(object):
         return self.do_call('nodes/%s' % node)
 
 
-class RabbitMQCollector(diamond.collector.Collector):
+class RabbitMQCollectorNew(diamond.collector.Collector):
 
     def get_default_config_help(self):
-        config_help = super(RabbitMQCollector, self).get_default_config_help()
+        config_help = super(RabbitMQCollectorNew, self).get_default_config_help()
         config_help.update({
             'host': 'Hostname and port to collect from',
             'user': 'Username',
             'password': 'Password',
             'replace_dot':
             'A value to replace dot in queue names and vhosts names by',
-            'replace_slash':
-            'A value to replace a slash in queue names and vhosts names by',
             'queues': 'Queues to publish. Leave empty to publish all.',
             'vhosts':
             'A list of vhosts and queues for which we want to collect',
@@ -102,17 +109,16 @@ class RabbitMQCollector(diamond.collector.Collector):
         """
         Returns the default collector settings
         """
-        config = super(RabbitMQCollector, self).get_default_config()
+        config = super(RabbitMQCollectorNew, self).get_default_config()
         config.update({
             'path': 'rabbitmq',
             'host': 'localhost:55672',
             'user': 'guest',
             'password': 'guest',
             'replace_dot': False,
-            'replace_slash': False,
             'queues_ignored': '',
+            'exchanges_ignored': '',
             'cluster': False,
-            'scheme': 'http',
         })
         return config
 
@@ -132,8 +138,7 @@ class RabbitMQCollector(diamond.collector.Collector):
         try:
             client = RabbitMQClient(self.config['host'],
                                     self.config['user'],
-                                    self.config['password'],
-                                    scheme=self.config['scheme'])
+                                    self.config['password'])
             node_name = client.get_overview()['node']
             node_data = client.get_node(node_name)
             for metric in health_metrics:
@@ -153,11 +158,13 @@ class RabbitMQCollector(diamond.collector.Collector):
         if self.config['queues_ignored']:
             for reg in self.config['queues_ignored'].split():
                 matchers.append(re.compile(reg))
+        if self.config['exchanges_ignored']:
+            for reg in self.config['exchanges_ignored'].split():
+                matchers.append(re.compile(reg))
         try:
             client = RabbitMQClient(self.config['host'],
                                     self.config['user'],
-                                    self.config['password'],
-                                    scheme=self.config['scheme'])
+                                    self.config['password'])
 
             legacy = False
 
@@ -166,6 +173,10 @@ class RabbitMQCollector(diamond.collector.Collector):
 
                 if 'queues' in self.config:
                     vhost_conf = {"*": self.config['queues']}
+                else:
+                    vhost_conf = {"*": ""}
+                if 'exchanges' in self.config:
+                    vhost_conf = {"*": self.config['exchanges']}
                 else:
                     vhost_conf = {"*": ""}
 
@@ -195,17 +206,19 @@ class RabbitMQCollector(diamond.collector.Collector):
                     vhost_name = vhost_name.replace(
                         '.', self.config['replace_dot'])
 
-                if self.config['replace_slash']:
-                    vhost_name = vhost_name.replace(
-                        '/', self.config['replace_slash'])
-
                 queues = vhost_conf[vhost]
+                exchanges = vhost_conf[vhost]
 
                 # Allow the use of a asterix to glob the queues, but replace
                 # with a empty string to match how legacy config was.
                 if queues == "*":
                     queues = ""
                 allowed_queues = queues.split()
+
+                if exchanges == "*":
+                    exchanges = ""
+                allowed_exchanges = exchanges.split()
+
 
                 # When we fetch queues, we do not want to define a vhost if
                 # legacy.
@@ -230,13 +243,30 @@ class RabbitMQCollector(diamond.collector.Collector):
                             queue_name = queue_name.replace(
                                 '.', self.config['replace_dot'])
 
-                        if self.config['replace_slash']:
-                            queue_name = queue_name.replace(
-                                '/', self.config['replace_slash'])
-
                         name = '{0}.{1}'.format(prefix, queue_name)
 
                         self._publish_metrics(name, [], key, queue)
+
+                for exchange in client.get_exchanges(vhost):
+                    if ((exchange['name'] not in allowed_exchanges and
+                         len(allowed_exchanges) > 0)):
+                        continue
+                    if matchers and any(
+                            [m.match(exchange['name']) for m in matchers]):
+                        continue
+                    for key in exchange:
+                        prefix = "exchanges"
+                        if not legacy:
+                            prefix = "vhosts.%s.%s" % (vhost_name, "exchanges")
+
+                        exchange_name = exchange['name']
+                        if self.config['replace_dot']:
+                            exchange_name = exchange_name.replace(
+                                '.', self.config['replace_dot'])
+
+                        name = '{0}.{1}'.format(prefix, exchange_name)
+
+                        self._publish_metrics(name, [], key, exchange)
 
             overview = client.get_overview()
             for key in overview:
