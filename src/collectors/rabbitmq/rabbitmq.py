@@ -84,10 +84,10 @@ class RabbitMQClient(object):
         return self.do_call('nodes/%s' % node)
 
 
-class RabbitMQCollectorNew(diamond.collector.Collector):
+class RabbitMQCollector(diamond.collector.Collector):
 
     def get_default_config_help(self):
-        config_help = super(RabbitMQCollectorNew, self).get_default_config_help()
+        config_help = super(RabbitMQCollector, self).get_default_config_help()
         config_help.update({
             'host': 'Hostname and port to collect from',
             'user': 'Username',
@@ -109,7 +109,7 @@ class RabbitMQCollectorNew(diamond.collector.Collector):
         """
         Returns the default collector settings
         """
-        config = super(RabbitMQCollectorNew, self).get_default_config()
+        config = super(RabbitMQCollector, self).get_default_config()
         config.update({
             'path': 'rabbitmq',
             'host': 'localhost:55672',
