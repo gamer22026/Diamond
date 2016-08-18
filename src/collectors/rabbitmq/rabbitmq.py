@@ -219,7 +219,6 @@ class RabbitMQCollector(diamond.collector.Collector):
                     exchanges = ""
                 allowed_exchanges = exchanges.split()
 
-
                 # When we fetch queues, we do not want to define a vhost if
                 # legacy.
                 if legacy:
