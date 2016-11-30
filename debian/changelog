@@ -1,6 +1,18 @@
-diamond (4.0.0) unstable; urgency=low
-  * new upstream
- -- Rob Smith <kormoc@gmail.com>  Wed, 31 Dec 2014 15:19:00 -0800
+diamond (4.0.462) unstable; urgency=medium
+
+  * Last Commit: (2016-08-18 08:11:10 -0700)
+    5038b5612383079a338b2703d78e1d49a4d051c2 Kevin McDermott
+    <kmcdermott@demark.com>
+
+ -- Kevin McDermott <kmcdermott@ksm-ws.marketstudies.com>  Thu, 18 Aug 2016 08:38:53 -0700
+
+diamond (4.0.462) unstable; urgency=medium
+
+  * Last Commit: (2016-08-18 08:11:10 -0700)
+    5038b5612383079a338b2703d78e1d49a4d051c2 Kevin McDermott
+    <kmcdermott@demark.com>
+
+ -- Kevin McDermott <kmcdermott@ksm-ws.marketstudies.com>  Thu, 18 Aug 2016 08:31:20 -0700
 
 diamond (3.1.0) unstable; urgency=low
   * new upstream
