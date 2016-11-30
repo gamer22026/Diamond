@@ -44,6 +44,17 @@ class TestRabbitMQCollector(CollectorTestCase):
             'key': 2,
             'string': 'str',
         }]
+        exchange_data = [{
+            'more_keys': {'nested_key': 1},
+            'key': 2,
+            'string': 'str',
+            'name': 'test_exchange'
+        }, {
+            'name': 'ignored',
+            'more_keys': {'nested_key': 1},
+            'key': 2,
+            'string': 'str',
+        }]
         overview_data = {
             'node': 'rabbit@localhost',
             'more_keys': {'nested_key': 3},
@@ -78,6 +89,8 @@ class TestRabbitMQCollector(CollectorTestCase):
         metrics = {
             'queues.test_queue.more_keys.nested_key': 1,
             'queues.test_queue.key': 2,
+            'exchanges.test_exchange.more_keys.nested_key': 1,
+            'exchanges.test_exchange.key': 2,
             'more_keys.nested_key': 3,
             'key': 4,
             'health.fd_used': 1,
@@ -115,6 +128,17 @@ class TestRabbitMQCollector(CollectorTestCase):
             'key': 2,
             'string': 'str',
         }]
+        exchange_data = [{
+            'more_keys': {'nested_key': 1},
+            'key': 2,
+            'string': 'str',
+            'name': 'test.exchange'
+        }, {
+            'name': 'ignored',
+            'more_keys': {'nested_key': 1},
+            'key': 2,
+            'string': 'str',
+        }]
         overview_data = {
             'node': 'rabbit@localhost',
             'more_keys': {'nested_key': 3},
@@ -145,6 +169,8 @@ class TestRabbitMQCollector(CollectorTestCase):
         metrics = {
             'queues.test_queue.more_keys.nested_key': 1,
             'queues.test_queue.key': 2,
+            'exchanges.test_exchange.more_keys.nested_key': 1,
+            'exchanges.test_exchange.key': 2,
             'more_keys.nested_key': 3,
             'key': 4,
             'health.fd_used': 1,
@@ -184,6 +210,17 @@ class TestRabbitMQCollector(CollectorTestCase):
             'key': 2,
             'string': 'str',
         }]
+        exchange_data = [{
+            'more_keys': {'nested_key': 1},
+            'key': 2,
+            'string': 'str',
+            'name': 'test/exchange'
+        }, {
+            'name': 'ignored',
+            'more_keys': {'nested_key': 1},
+            'key': 2,
+            'string': 'str',
+        }]
         overview_data = {
             'node': 'rabbit@localhost',
             'more_keys': {'nested_key': 3},
@@ -214,6 +251,8 @@ class TestRabbitMQCollector(CollectorTestCase):
         metrics = {
             'queues.test_queue.more_keys.nested_key': 1,
             'queues.test_queue.key': 2,
+            'exchanges.test_exchange.more_keys.nested_key': 1,
+            'exchanges.test_exchange.key': 2,
             'more_keys.nested_key': 3,
             'key': 4,
             'health.fd_used': 1,
